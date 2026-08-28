@@ -1,0 +1,10 @@
+---
+description: Route R and Quarto work to VegVault R guidance
+globs:
+  - "**/*.R"
+  - "**/*.Rmd"
+  - "**/*.qmd"
+alwaysApply: false
+---
+
+Read `AGENTS.md`, `.ai/repository-contract.md`, and, when available, `../VegVault/.ai/r-coding.md` plus `../VegVault/.ai/debugging.md`.
