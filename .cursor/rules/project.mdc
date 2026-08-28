@@ -1,0 +1,8 @@
+---
+description: Route all work to the abiotic producer contract
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+Read `AGENTS.md` and `.ai/repository-contract.md`. Use the sibling `../VegVault/.ai/` guidance when available.
