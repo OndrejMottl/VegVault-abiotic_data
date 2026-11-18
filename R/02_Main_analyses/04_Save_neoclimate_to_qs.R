@@ -63,7 +63,6 @@ purrr::walk(
       dir = here::here(
         "Outputs/Data/Neoclimate"
       ),
-      prefered_format = "qs",
-      preset = "archive"
+      prefered_format = "qs"
     )
 )
