@@ -5,8 +5,7 @@ save_in_batches <- function(
     n_batches = 5,
     file_name,
     dir,
-    prefered_format = "rds",
-    preset = "archive") {
+    prefered_format = "rds") {
   # Get the number of rows in the dataset
   n_rows <- nrow(data_source)
 
@@ -32,8 +31,7 @@ save_in_batches <- function(
             .x
           ),
           dir = dir,
-          prefered_format = prefered_format,
-          preset = preset
+          prefered_format = prefered_format
         )
     }
   )

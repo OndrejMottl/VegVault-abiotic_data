@@ -82,8 +82,7 @@ purrr::walk(
       dir = here::here(
         "Outputs/Data/Palaoclimate"
       ),
-      prefered_format = "qs",
-      preset = "archive"
+      prefered_format = "qs"
     )
   }
 )
