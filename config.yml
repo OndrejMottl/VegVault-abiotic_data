@@ -1,0 +1,37 @@
+# Project configuration read through `load_config_value()`.
+# Select a profile with the `R_CONFIG_ACTIVE` environment variable; the
+#   `default` profile is used otherwise. Other profiles inherit from
+#   `default` and only list the values they change.
+# Machine-local paths do not belong here; put them in the git-ignored
+#   `secrets.yaml` (see `secrets_example.yaml`).
+# The template conversion adds the source, processing, quality-check and
+#   export settings stage by stage.
+
+default:
+  # Name of the active profile; `validate_config_profile()` compares it with
+  #   R_CONFIG_ACTIVE
+  profile: "default"
+  seed: 900723
+  # Data root used when `secrets.yaml` has no `Data` entry; relative to the
+  #   project. Raw inputs live in `<data root>/Input/` and target stores in
+  #   `<data root>/Targets_data/`.
+  data_storage_path: "Data"
+  # Packages for renv to record. Packages called only as `pkg::fun()` are
+  #   detected automatically.
+  packages:
+    # Attached by `R/___setup_project___.R`. The legacy scripts call `%>%`
+    #   and `dplyr::case_when()` without a namespace, so tidyverse stays
+    #   attached for them. Do not attach packages that mask base functions
+    #   (e.g. renv, config).
+    attach:
+      - assertthat
+      - cli
+      - here
+      - targets
+      - tidyverse
+    # Installed and recorded, but not attached (IDE and workflow tools)
+    tools:
+      - httpgd
+      - languageserver
+      - roxygen2
+      - visNetwork
