@@ -10,131 +10,26 @@
 #                         2023
 #
 #----------------------------------------------------------#
-# Configuration script with the variables that should be consistent throughout
-#   the whole repo. It loads packages, defines important variables,
-#   authorises the user, and saves config file.
+# Compatibility entry point for the legacy scripts in R/01_Data_processing/
+#   and R/02_Main_analyses/, which source this file. It sources the project
+#   setup and keeps the seed these scripts used. New code sources
+#   R/___setup_project___.R directly. Remove this file when the template
+#   stages replace the legacy scripts.
 
-# Set the current environment
-current_env <- environment()
 
-# set seed
+#----------------------------------------------------------#
+# 0. Setup -----
+#----------------------------------------------------------#
+
+library(here)
+
+# Loads every function in R/Functions/, attaches `packages: attach` of
+#   config.yml and resolves the data root. Packages are restored from
+#   renv.lock by R/___Init_project___.R, no longer here. The legacy scripts
+#   call every other package with its namespace or attach it themselves
+source(
+  here::here("R/___setup_project___.R")
+)
+
+# The seed of the legacy scripts; the setup sets `seed` of config.yml
 set.seed(1234)
-
-
-#----------------------------------------------------------#
-# 1. Load packages -----
-#----------------------------------------------------------#
-
-if (
-  isFALSE(
-    exists("already_synch", envir = current_env)
-  )
-) {
-  already_synch <- FALSE
-}
-
-if (
-  isFALSE(already_synch)
-) {
-  library(here)
-  # Synchronise the package versions
-  renv::restore(
-    lockfile = here::here("renv/library_list.lock")
-  )
-  already_synch <- TRUE
-
-  # Save snapshot of package versions
-  # renv::snapshot(lockfile =  "renv/library_list.lock")  # do only for update
-}
-
-# Define packages
-package_list <-
-  c(
-   "assertthat",
-    "devtools",
-    "furrr",
-    "future",
-    "here",
-    "httpgd",
-    "janitor",
-    "jsonlite",
-    "knitr",
-    "languageserver",
-    "lifecycle",
-    "renv",
-    "remotes",
-    "rlang",
-    "roxygen2",
-    "sf",
-    "terra",
-    "tidyverse",
-    "usethis",
-    "utils"
-  )
-
-# Attach all packages
-sapply(package_list, library, character.only = TRUE)
-
-
-#----------------------------------------------------------#
-# 2. Define space -----
-#----------------------------------------------------------#
-
-current_date <- Sys.Date()
-
-# project directory is set up by 'here' package, Adjust if needed
-current_dir <- here::here()
-
-
-#----------------------------------------------------------#
-# 3. Load functions -----
-#----------------------------------------------------------#
-
-# get vector of general functions
-fun_list <-
-  list.files(
-    path = "R/Functions/",
-    pattern = "*.R",
-    recursive = TRUE
-  )
-
-# source them
-sapply(
-  paste0("R/functions/", fun_list, sep = ""),
-  source
-)
-
-
-#----------------------------------------------------------#
-# 4. Authorise the user -----
-#----------------------------------------------------------#
-
-# if applicable
-
-#----------------------------------------------------------#
-# 5. Define variables -----
-#----------------------------------------------------------#
-
-
-#----------------------------------------------------------#
-# 6. Graphical options -----
-#----------------------------------------------------------#
-
-## examples
-# set ggplot output
-ggplot2::theme_set(
-  ggplot2::theme_classic()
-)
-
-# define general
-text_size <- 10
-line_size <- 0.1
-
-# define output sizes
-image_width <- 16
-image_height <- 12
-image_units <- "cm"
-
-# define pallets
-
-# define common color
