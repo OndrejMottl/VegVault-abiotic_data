@@ -132,7 +132,7 @@ default:
       - product: "CHELSA_TraCE21k_V1.0"
         variables: [bio18, bio19]
         rules: [pair_exceeding]
-        reason: "Source inconsistency: in CHELSA-TraCE21k the precipitation of the wettest and the driest quarter exceeds the annual precipitation in some cells of every age (raw age 0: 1,580,397 bio18 cells, at most 3.9 % of a band); kept as delivered and documented (accepted by Ondrej Mottl, 2026-11-21)."
+        reason: "Source inconsistency: in CHELSA-TraCE21k the precipitation of the warmest and the coldest quarter exceeds the annual precipitation in some cells of every age (raw age 0: 1,580,397 bio18 cells, at most 3.9 % of a band); kept as delivered and documented (accepted by Ondrej Mottl, 2026-11-21)."
     # One entry per set of files checked together. `variables` maps the
     #   variable name used in thresholds and tables to the token in the
     #   file name. `required_pass: true` stops the run when the set fails;
