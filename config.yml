@@ -113,10 +113,12 @@ default:
         pair_exceeding: {bio18: 0, bio19: 0}
         pair_missing_only: {bio18: 0, bio19: 0}
     # Accepted exceptions. An entry allows every combination of its
-    #   variables and rules, within its latitude limits when given. The
-    #   CHELSA V2.1 bio12 cap at 6553.5 has no entry: it fails until it is
-    #   decided whether to document or mask it.
+    #   variables and rules, within its latitude limits when given.
     allow_list:
+      - product: "CHELSA_V2.1"
+        variables: [bio12]
+        rules: [type_limit]
+        reason: "Storage cap of the source: CHELSA V2.1 stores bio12 as unsigned 16-bit integers with scale 0.1, so annual precipitation above 6553.5 mm is stored as 6553.5 (raw: 773,582 cells in 63 bands, 846 of them polar fill cells at 89.98-90 S, which the processing stage masks); a value of 6553.5 means at least 6553.5 mm; documented, not masked (decided by Ondrej Mottl, 2026-11-21)."
       - product: "CHELSA_TraCE21k_V1.0"
         variables: [bio12, bio18, bio19]
         rules: [zero_share_max, zero_share_step]
