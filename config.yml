@@ -35,6 +35,70 @@ default:
       - languageserver
       - roxygen2
       - visNetwork
+  # Raw data sources, defined once: the download stage
+  #   (`01_Data_acquisition`) obtains and checks them, and the raw-raster
+  #   quality checks name them with `source`. Folders are relative to the
+  #   data root. `file_check` is how completeness is checked: `geotiff`
+  #   (size against the server-size record and the TIFF block table) or
+  #   `zip` (the archive must open; the FAO server announces no file size,
+  #   so the size rule cannot apply). Every flag is false by default: with
+  #   `flag_download` false nothing is downloaded and a missing file stops
+  #   the run; `flag_record_checksums` records the SHA-256 of present files
+  #   that have no download record yet. Set a flag for one approved run,
+  #   then set it back.
+  data_sources:
+    chelsa_v21:
+      product: "CHELSA_V2.1"
+      dir: "Input/Neoclimate/CHELSA_V2.1"
+      file_name_template: "CHELSA_{file_variable}_1981-2010_V.2.1.tif"
+      url_template: "https://os.zhdk.cloud.switch.ch/chelsav2/GLOBAL/climatologies/1981-2010/bio/{file_name}"
+      variables:
+        {bio1: bio1, bio4: bio4, bio6: bio6, bio12: bio12, bio15: bio15, bio18: bio18, bio19: bio19}
+      ages: {from: 0, to: 0, by: 1}
+      server_sizes_file: "Input/Server_file_sizes/server_file_sizes_2026-11-20.csv"
+      file_check: "geotiff"
+      flag_download: false
+      flag_record_checksums: false
+    chelsa_trace21k:
+      product: "CHELSA_TraCE21k_V1.0"
+      dir: "Input/Paleoclimate"
+      file_name_template: "CHELSA_TraCE21k_{file_variable}_{time_id}_V1.0.tif"
+      url_template: "https://os.zhdk.cloud.switch.ch/chelsav1/chelsa_trace/bio/{file_name}"
+      variables:
+        {bio1: bio01, bio4: bio04, bio6: bio06, bio12: bio12, bio15: bio15, bio18: bio18, bio19: bio19}
+      ages: {from: 0, to: 18000, by: 500}
+      # time_id = (origin_age - age) / step_years: age 0 is 20
+      time_id: {origin_age: 2000, step_years: 100}
+      server_sizes_file: "Input/Server_file_sizes/server_file_sizes_2026-11-20.csv"
+      file_check: "geotiff"
+      flag_download: false
+      flag_record_checksums: false
+    hwsd:
+      product: "HWSD_v2.2"
+      dir: "Input/HWSD"
+      files:
+        hwsd2.2_db.zip: "https://data.apps.fao.org/catalog/dataset/fedae0d8-677c-47a7-9049-6cba560e6c0a/resource/2a815078-f166-4fd6-af0c-733235c15daf/download/hwsd2.2_db.zip"
+        hwsd2.2_raster.zip: "https://data.apps.fao.org/catalog/dataset/fedae0d8-677c-47a7-9049-6cba560e6c0a/resource/3d3ad0cb-c840-4eea-8ae1-fada78c5eebb/download/hwsd2.2_raster.zip"
+      # Members extracted next to the archives (git-ignored folder)
+      archive_members:
+        hwsd2.2_db.zip: [HWSD2.2.mdb]
+        hwsd2.2_raster.zip: [HWSD2.bil, HWSD2.hdr, HWSD2.prj, HWSD2.stx]
+      file_check: "zip"
+      flag_download: false
+      flag_record_checksums: false
+  # Download stage (`01_Data_acquisition`). Folders are relative to the data
+  #   root. The download records are tracked: one CSV per run and product,
+  #   never overwritten.
+  data_acquisition:
+    dir_records: "Input/Download_records"
+    # Temporary `.part` files of running downloads (git-ignored)
+    dir_download: "Temp/Downloads"
+    # The HWSD soil-unit and soil-group tables, saved once from the Access
+    #   database as tracked CSV files, so later stages need no Access
+    #   driver. The flag needs the Microsoft Access ODBC driver (Windows).
+    hwsd_class_tables:
+      dir: "Input/HWSD_tables"
+      flag_read_access_database: false
   # Raster quality check (stage `03_Quality_checks`), read by
   #   `build_raster_quality_targets()`. Folders are relative to the data
   #   root. Changing a value reruns only the targets that depend on it.
@@ -135,19 +199,16 @@ default:
         variables: [bio18, bio19]
         rules: [pair_exceeding]
         reason: "Source inconsistency: in CHELSA-TraCE21k the precipitation of the warmest and the coldest quarter exceeds the annual precipitation in some cells of every age (raw age 0: 1,580,397 bio18 cells, at most 3.9 % of a band); kept as delivered and documented (accepted by Ondrej Mottl, 2026-11-21)."
-    # One entry per set of files checked together. `variables` maps the
-    #   variable name used in thresholds and tables to the token in the
-    #   file name. `required_pass: true` stops the run when the set fails;
-    #   the legacy sets are kept as a comparison and only reported.
+    # One entry per set of files checked together. A set either names a
+    #   raw data source (`source`, from `data_sources`) or defines its
+    #   files itself; `variables` maps the variable name used in thresholds
+    #   and tables to the token in the file name. `required_pass: true`
+    #   stops the run when the set fails; the legacy sets are kept as a
+    #   comparison and only reported.
     check_sets:
       chelsa_v21_raw:
-        product: "CHELSA_V2.1"
+        source: "chelsa_v21"
         required_pass: true
-        dir: "Input/Neoclimate/CHELSA_V2.1"
-        file_name_template: "CHELSA_{file_variable}_1981-2010_V.2.1.tif"
-        variables:
-          {bio1: bio1, bio4: bio4, bio6: bio6, bio12: bio12, bio15: bio15, bio18: bio18, bio19: bio19}
-        ages: {from: 0, to: 0, by: 1}
         grid: raw
         check_server_size: true
         pairs:
@@ -168,15 +229,8 @@ default:
           - {variable: bio18, reference: bio12}
           - {variable: bio19, reference: bio12}
       chelsa_trace21k_raw:
-        product: "CHELSA_TraCE21k_V1.0"
+        source: "chelsa_trace21k"
         required_pass: true
-        dir: "Input/Paleoclimate"
-        file_name_template: "CHELSA_TraCE21k_{file_variable}_{time_id}_V1.0.tif"
-        variables:
-          {bio1: bio01, bio4: bio04, bio6: bio06, bio12: bio12, bio15: bio15, bio18: bio18, bio19: bio19}
-        ages: {from: 0, to: 18000, by: 500}
-        # time_id = (origin_age - age) / step_years: age 0 is 20
-        time_id: {origin_age: 2000, step_years: 100}
         grid: raw
         check_server_size: true
         pairs:

@@ -30,8 +30,19 @@ source(
   here::here("R/___setup_project___.R")
 )
 
-config_quality_checks <-
+config_quality_checks_raw <-
   load_config_value(value = "quality_checks")
+
+# Check sets that name a raw data source take its file definition
+config_quality_checks <-
+  purrr::assign_in(
+    config_quality_checks_raw,
+    "check_sets",
+    prepare_quality_check_sets(
+      list_check_sets = purrr::chuck(config_quality_checks_raw, "check_sets"),
+      list_data_sources = load_config_value(value = "data_sources")
+    )
+  )
 
 config_pipeline <-
   purrr::chuck(config_quality_checks, "pipelines", "processed_rasters")

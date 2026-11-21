@@ -36,7 +36,7 @@ The stages replace the legacy script cascade one by one. Planned order (agreed w
 
 | Stage | Content |
 | --- | --- |
-| `01_Data_acquisition` | Downloads behind flags that default to `FALSE`; a download is accepted only after a completeness check against the server size; a tracked download record (URL, date, size, SHA-256). With every flag `FALSE` no download starts, and a missing raw file stops with a message naming the flag. |
+| `01_Data_acquisition` | Built. Three pipelines with their own stores (`CHELSA_V2.1`, `CHELSA_TraCE21k`, `HWSD`), declared by `build_source_acquisition_targets()`. Downloads behind `flag_download`, which defaults to `FALSE`; a download is accepted only after a completeness check (size against the server-size record and the TIFF block table, or, for the HWSD zip archives whose server announces no size, an archive that opens); existing files are never overwritten. A tracked download record per run (URL, date, size, SHA-256); `flag_record_checksums` records files obtained before the stage existed. The HWSD class tables are saved once from the Access database (`flag_read_access_database`) as tracked CSV files. With every flag `FALSE` no download starts, and a missing, incomplete or unrecorded file stops with a message naming the flag. |
 | `02_Data_processing` | Aggregation of the CHELSA V2.1 and CHELSA-TraCE21k rasters and the HWSD soil-group raster. |
 | `03_Quality_checks` | The raster quality check: fails closed and writes the band and summary tables to `Outputs/Tables/`. |
 | `04_Data_extraction` | Raster to cell tables, as targets; no "latest file by date" lookups. |
@@ -59,6 +59,7 @@ The stages replace the legacy script cascade one by one. Planned order (agreed w
 
 - Analysis values live in `config.yml` and are read only through `load_config_value()`. Profiles other than `default` are selected with `R_CONFIG_ACTIVE`; `validate_config_profile()` stops on an unknown profile name.
 - The data root comes from `resolve_data_storage_path()`: `Data` in `secrets.yaml` if present, otherwise `data_storage_path` in `config.yml`. A worktree sets `Data` to the main checkout's `Data` folder, so raw inputs are reconnected, never copied.
+- Raw data sources are defined once, in `data_sources` of `config.yml`: the download stage reads them, and the raw-raster quality-check sets name them with `source` (`prepare_quality_check_sets()`). Tracked inputs under the data root: `Input/Server_file_sizes/` (server-size records), `Input/Download_records/` (one CSV per run and product, never overwritten) and `Input/HWSD_tables/` (the HWSD class tables); the extracted HWSD files in `Input/HWSD/` are git-ignored.
 - The template pipeline writes processed rasters to new folders (`Data/Processed/CHELSA_V2.1/`, `Data/Processed/CHELSA_TraCE21k_V1.0/`, `Data/Processed/HWSD_v2.2/`). The tracked legacy rasters in `Data/Processed/Neoclimate/`, `Paleoclimate/` and `WoSIS/` stay untouched as the comparison baseline.
 
 ## Setup and packages
