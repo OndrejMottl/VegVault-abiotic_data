@@ -69,6 +69,12 @@ Data/Processed/CHELSA_V2.1/
 Data/Processed/CHELSA_TraCE21k_V1.0/
 Data/Processed/HWSD_v2.2/
 
+# Large tables of the raster quality check (band statistics and pair
+#   comparisons, about 10 MB per set) go with the release evidence; the
+#   summary and findings tables are tracked
+Outputs/Tables/raster_quality_*_bands.csv
+Outputs/Tables/raster_quality_*_pairs.csv
+
 # Private material (correspondence, personal details)
 Private/
 **/Private/
