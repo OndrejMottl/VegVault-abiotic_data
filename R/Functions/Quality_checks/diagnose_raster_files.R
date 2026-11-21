@@ -31,7 +31,8 @@
 #' Rules that need a readable file are evaluated only for readable files;
 #' a file that is missing or unreadable fails on that rule instead. The
 #' `block_extent` finding of a truncated file names the first affected row
-#' and the latitude of its top edge. All rules have fixed thresholds, so no
+#' and the latitude of its top edge, or says that the latitude is unknown
+#' when the file could not be read. All rules have fixed thresholds, so no
 #' threshold table is needed.
 #' @seealso [compute_raster_band_summary()], [compute_tiff_block_extent()],
 #'   [resolve_quality_findings()]
@@ -252,9 +253,16 @@ diagnose_raster_files <- function(
               .data[["n_blocks_beyond_end"]],
               " blocks end beyond the end of the file; the first affected ",
               "row is row ", .data[["first_affected_row"]],
-              " (counted from 0), whose top edge lies at ",
-              base::round(.data[["lat_first_affected"]], 4),
-              " degrees."
+              " (counted from 0), ",
+              dplyr::if_else(
+                base::is.na(.data[["lat_first_affected"]]),
+                "whose latitude is unknown because the file was not read.",
+                stringr::str_c(
+                  "whose top edge lies at ",
+                  base::round(.data[["lat_first_affected"]], 4),
+                  " degrees."
+                )
+              )
             ),
             .default = ""
           )

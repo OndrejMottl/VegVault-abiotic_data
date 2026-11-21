@@ -220,6 +220,39 @@ testthat::test_that("diagnose_raster_files() fails blocks beyond the end", {
   testthat::expect_match(dplyr::pull(data_fail, "detail"), "20")
 })
 
+testthat::test_that("diagnose_raster_files() names the row of an unread cut", {
+  data_band_unread <-
+    dplyr::mutate(
+      data_band_file_ok,
+      dplyr::across(
+        .cols = c("n_col", "n_row", "x_min", "x_max", "y_min", "y_max"),
+        .fns = ~ NA_real_
+      ),
+      read_error = "Cannot read values."
+    )
+
+  res <-
+    diagnose_raster_files(
+      data_expected_files = data_expected_ok,
+      data_band_summary = data_band_unread,
+      data_block_extent = dplyr::mutate(
+        data_block_ok,
+        n_blocks_beyond_end = 22,
+        first_affected_row = 14
+      ),
+      data_allow_list = data_allow_list_none
+    )
+
+  vec_detail_block <-
+    res |>
+    dplyr::filter(.data[["rule"]] == "block_extent") |>
+    dplyr::pull("detail")
+
+  testthat::expect_false(base::is.na(vec_detail_block))
+  testthat::expect_match(vec_detail_block, "row 14")
+  testthat::expect_match(vec_detail_block, "latitude is unknown")
+})
+
 testthat::test_that("diagnose_raster_files() fails a missing block row", {
   res <-
     diagnose_raster_files(
