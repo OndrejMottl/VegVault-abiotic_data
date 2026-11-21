@@ -1,0 +1,3 @@
+product,file_name,url,size_bytes,sha256,downloaded_utc,recorded_utc,method
+HWSD_v2.2,hwsd2.2_db.zip,https://data.apps.fao.org/catalog/dataset/fedae0d8-677c-47a7-9049-6cba560e6c0a/resource/2a815078-f166-4fd6-af0c-733235c15daf/download/hwsd2.2_db.zip,11149251,593d281efd5e9491e4ff7548b5a9af00d3d0a6d70efa8eab255c4c0f861f6305,2026-11-20T13:16:13Z,2026-11-20T13:16:13Z,download
+HWSD_v2.2,hwsd2.2_raster.zip,https://data.apps.fao.org/catalog/dataset/fedae0d8-677c-47a7-9049-6cba560e6c0a/resource/3d3ad0cb-c840-4eea-8ae1-fada78c5eebb/download/hwsd2.2_raster.zip,22439811,55612130174f228f48d0691a2e01ab92150617dfd0d6605e65e3619eb5c123d8,2026-11-20T13:16:16Z,2026-11-20T13:16:16Z,download

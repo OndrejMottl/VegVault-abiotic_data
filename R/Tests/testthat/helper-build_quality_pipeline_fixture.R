@@ -19,8 +19,9 @@
 #' bio18 with bio12; it passes. Set `neo_legacy` (not required) has bio4
 #' at 50 north of the equator and 0 south of it; it fails the zero-share
 #' rules. The pipeline script sources the function files of
-#' `R/Functions/Quality_checks/` and `R/Functions/Workflow/`, because
-#' `run_target_pipeline()` runs it in a new R session.
+#' `R/Functions/Data_acquisition/`, `R/Functions/Quality_checks/` and
+#' `R/Functions/Workflow/`, because `run_target_pipeline()` runs it in a
+#' new R session.
 build_quality_pipeline_fixture <- function(dir_root) {
   # Forward slashes, because the paths are written into the script text
   dir_root_normalised <-
@@ -157,10 +158,13 @@ build_quality_pipeline_fixture <- function(dir_root) {
     base::file.path(dir_root_normalised, "Tables")
 
   # Only the template subfolders: the legacy functions directly in
-  #   `R/Functions/` make `{targets}` print code-analysis warnings
+  #   `R/Functions/` make `{targets}` print code-analysis warnings. The
+  #   quality checks build their file lists with `Data_acquisition` code
   vec_path_functions <-
     base::normalizePath(
-      here::here("R", "Functions", c("Quality_checks", "Workflow")),
+      here::here(
+        "R", "Functions", c("Data_acquisition", "Quality_checks", "Workflow")
+      ),
       winslash = "/"
     )
 
