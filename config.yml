@@ -35,3 +35,189 @@ default:
       - languageserver
       - roxygen2
       - visNetwork
+  # Raster quality check (stage `03_Quality_checks`), read by
+  #   `build_raster_quality_targets()`. Folders are relative to the data
+  #   root. Changing a value reruns only the targets that depend on it.
+  quality_checks:
+    # Latitude band width in degrees; bands are fixed slices at multiples
+    #   of it, assigned by the latitude of the row centre
+    band_width: 1
+    # Raster rows read at once
+    n_rows_block: 240
+    # Relative tolerance for comparing values (type limits, pairs)
+    value_tolerance: 1.0e-6
+    # Largest accepted difference of an extent edge, in degrees
+    extent_tolerance: 1.0e-6
+    # Storage-type limits: the minimum and maximum of each integer type
+    #   times each scale plus each offset. Offset -273.15 is the Kelvin
+    #   offset of CHELSA V2.1 temperatures.
+    type_limits:
+      scales: [1, 0.1, 0.01]
+      offsets: [0, -273.15]
+      integer_types: [INT1S, INT1U, INT2S, INT2U, INT4S, INT4U]
+    # File sizes announced by the server (HTTP HEAD, 2026-11-20)
+    server_sizes_file: "Input/Server_file_sizes/server_file_sizes_2026-11-20.csv"
+    grids:
+      raw:
+        n_col: 43200
+        n_row: 20880
+        x_min: -180.0001388889
+        x_max: 179.9998596712
+        y_min: -90.0001388889
+        y_max: 83.9998604152
+      processed:
+        n_col: 1728
+        n_row: 836
+        x_min: -180.0001388889
+        x_max: 179.9998596712
+        y_min: -90.1668055549
+        y_max: 83.9998604152
+    # Check sets of each pipeline of the stage, and the number of local
+    #   worker processes (1 = sequential). A raw file needs about 100 s
+    #   and 1.1 GB of memory per worker; the processed rasters are small.
+    pipelines:
+      processed_rasters:
+        n_workers: 1
+        check_sets:
+          - chelsa_v21_processed_legacy
+          - chelsa_trace21k_processed_legacy
+          - chelsa_v21_processed_verification
+      raw_rasters:
+        n_workers: 8
+        check_sets:
+          - chelsa_v21_raw
+          - chelsa_v21_raw_legacy
+          - chelsa_trace21k_raw
+    # Thresholds by product, rule and variable. Derived on 2026-11-21 from
+    #   the healthy tracked processed rasters (all except CHELSA V2.1 bio4
+    #   and CHELSA-TraCE21k bio15 at age 0): the largest observed value
+    #   times 1.5 plus 0.05. For CHELSA-TraCE21k the zero-share and step
+    #   values use only bands north of 74 S; the allow-list covers the
+    #   bands south of it. Pair thresholds are 0: no quarter may exceed
+    #   the year, and no quarter may be missing where the year has a value.
+    thresholds:
+      CHELSA_V2.1:
+        zero_share_max:
+          {bio1: 0.05, bio4: 0.05, bio6: 0.05, bio12: 0.05, bio15: 0.05, bio18: 0.131, bio19: 0.140}
+        zero_share_step:
+          {bio1: 0.05, bio4: 0.05, bio6: 0.05, bio12: 0.05, bio15: 0.05, bio18: 0.076, bio19: 0.096}
+        pair_exceeding: {bio18: 0, bio19: 0}
+        pair_missing_only: {bio18: 0, bio19: 0}
+      CHELSA_TraCE21k_V1.0:
+        zero_share_max:
+          {bio1: 0.051, bio4: 0.05, bio6: 0.05, bio12: 0.115, bio15: 0.093, bio18: 0.318, bio19: 0.313}
+        zero_share_step:
+          {bio1: 0.051, bio4: 0.05, bio6: 0.05, bio12: 0.101, bio15: 0.085, bio18: 0.141, bio19: 0.153}
+        zero_share_age_deviation:
+          {bio1: 0.05, bio4: 0.05, bio6: 0.05, bio12: 0.314, bio15: 0.095, bio18: 0.35, bio19: 0.277}
+        pair_exceeding: {bio18: 0, bio19: 0}
+        pair_missing_only: {bio18: 0, bio19: 0}
+    # Accepted exceptions. An entry allows every combination of its
+    #   variables and rules, within its latitude limits when given. The
+    #   CHELSA V2.1 bio12 cap at 6553.5 has no entry: it fails until it is
+    #   decided whether to document or mask it.
+    allow_list:
+      - product: "CHELSA_TraCE21k_V1.0"
+        variables: [bio12, bio18, bio19]
+        rules: [zero_share_max, zero_share_step]
+        lat_min: -91
+        lat_max: -74
+        reason: "Antarctic interior: CHELSA-TraCE21k has no downscaled precipitation south of 74 S, so zero shares up to 1 occur in every age (accepted by Ondrej Mottl, 2026-11-21)."
+      - product: "CHELSA_TraCE21k_V1.0"
+        variables: [bio15]
+        rules: [band_all_missing]
+        lat_min: -91
+        lat_max: -80
+        reason: "Precipitation seasonality is undefined without precipitation, so CHELSA-TraCE21k bio15 has no value south of 80 S (accepted by Ondrej Mottl, 2026-11-21)."
+      - product: "CHELSA_TraCE21k_V1.0"
+        variables: [bio18, bio19]
+        rules: [pair_exceeding]
+        reason: "Source inconsistency: in CHELSA-TraCE21k the precipitation of the wettest and the driest quarter exceeds the annual precipitation in some cells of every age (raw age 0: 1,580,397 bio18 cells, at most 3.9 % of a band); kept as delivered and documented (accepted by Ondrej Mottl, 2026-11-21)."
+    # One entry per set of files checked together. `variables` maps the
+    #   variable name used in thresholds and tables to the token in the
+    #   file name. `required_pass: true` stops the run when the set fails;
+    #   the legacy sets are kept as a comparison and only reported.
+    check_sets:
+      chelsa_v21_raw:
+        product: "CHELSA_V2.1"
+        required_pass: true
+        dir: "Input/Neoclimate/CHELSA_V2.1"
+        file_name_template: "CHELSA_{file_variable}_1981-2010_V.2.1.tif"
+        variables:
+          {bio1: bio1, bio4: bio4, bio6: bio6, bio12: bio12, bio15: bio15, bio18: bio18, bio19: bio19}
+        ages: {from: 0, to: 0, by: 1}
+        grid: raw
+        check_server_size: true
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+      chelsa_v21_raw_legacy:
+        product: "CHELSA_V2.1"
+        required_pass: false
+        dir: "Input/Neoclimate/bio/ChelsaV2.1Climatologies"
+        file_name_template: "CHELSA_{file_variable}_1981-2010_V2.1.tif"
+        variables:
+          {bio1: bio_01, bio4: bio_04, bio6: bio_06, bio12: bio_12, bio15: bio_15, bio18: bio_18, bio19: bio_19}
+        ages: {from: 0, to: 0, by: 1}
+        grid: raw
+        # The 2023 files differ from what the server holds now
+        check_server_size: false
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+      chelsa_trace21k_raw:
+        product: "CHELSA_TraCE21k_V1.0"
+        required_pass: true
+        dir: "Input/Paleoclimate"
+        file_name_template: "CHELSA_TraCE21k_{file_variable}_{time_id}_V1.0.tif"
+        variables:
+          {bio1: bio01, bio4: bio04, bio6: bio06, bio12: bio12, bio15: bio15, bio18: bio18, bio19: bio19}
+        ages: {from: 0, to: 18000, by: 500}
+        # time_id = (origin_age - age) / step_years: age 0 is 20
+        time_id: {origin_age: 2000, step_years: 100}
+        grid: raw
+        check_server_size: true
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+      chelsa_v21_processed_legacy:
+        product: "CHELSA_V2.1"
+        required_pass: false
+        dir: "Processed/Neoclimate"
+        file_name_template: "CHELSA_{file_variable}_1981-2010_V2.1.tif"
+        variables:
+          {bio1: bio_01, bio4: bio_04, bio6: bio_06, bio12: bio_12, bio15: bio_15, bio18: bio_18, bio19: bio_19}
+        ages: {from: 0, to: 0, by: 1}
+        grid: processed
+        check_server_size: false
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+      chelsa_trace21k_processed_legacy:
+        product: "CHELSA_TraCE21k_V1.0"
+        required_pass: false
+        dir: "Processed/Paleoclimate"
+        file_name_template: "CHELSA_TraCE21k_{file_variable}_{time_id}_V1.0.tif"
+        variables:
+          {bio1: bio01, bio4: bio04, bio6: bio06, bio12: bio12, bio15: bio15, bio18: bio18, bio19: bio19}
+        ages: {from: 0, to: 18000, by: 500}
+        time_id: {origin_age: 2000, step_years: 100}
+        grid: processed
+        check_server_size: false
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+      # The new raw bio4 aggregated with the legacy method
+      #   (`downscale_and_crop_tif_data()`, factor 25, median), which keeps
+      #   the raw file name, to show that the corrected file gives a
+      #   healthy processed raster
+      chelsa_v21_processed_verification:
+        product: "CHELSA_V2.1"
+        required_pass: false
+        dir: "Temp/Verification"
+        file_name_template: "CHELSA_{file_variable}_1981-2010_V.2.1.tif"
+        variables: {bio4: bio4}
+        ages: {from: 0, to: 0, by: 1}
+        grid: processed
+        check_server_size: false
+        pairs: []
