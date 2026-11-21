@@ -27,9 +27,11 @@
 
 library(here)
 
-# No stage exists yet; the template conversion adds them in order
+# The template conversion adds the other stages in order
 vec_stage_runners <-
-  base::character(0)
+  c(
+    "R/Analyses/03_Quality_checks/00_run.R"
+  )
 
 
 #----------------------------------------------------------#
