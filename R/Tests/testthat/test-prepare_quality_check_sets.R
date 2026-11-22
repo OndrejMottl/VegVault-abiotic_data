@@ -151,12 +151,36 @@ testthat::test_that("prepare_quality_check_sets() refuses two definitions", {
       list_check_sets = base::list(
         neo_raw = base::list(
           source = "neo",
-          dir = "Input/Other",
+          variables = base::list(bio1 = "bio_01"),
           required_pass = TRUE
         )
       ),
       list_data_sources = list_sources_valid
     ),
-    regexp = "dir"
+    regexp = "variables"
   )
+})
+
+testthat::test_that("prepare_quality_check_sets() keeps an own folder", {
+  res <-
+    prepare_quality_check_sets(
+      list_check_sets = base::list(
+        neo_processed = base::list(
+          source = "neo",
+          dir = "Processed/Neo",
+          required_pass = TRUE
+        )
+      ),
+      list_data_sources = list_sources_valid
+    )
+
+  list_set <-
+    res[["neo_processed"]]
+
+  testthat::expect_equal(list_set[["dir"]], "Processed/Neo")
+  testthat::expect_equal(
+    list_set[["file_name_template"]],
+    "neo_{file_variable}.tif"
+  )
+  testthat::expect_equal(base::sum(base::names(list_set) == "dir"), 1L)
 })

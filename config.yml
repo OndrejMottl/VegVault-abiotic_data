@@ -99,6 +99,68 @@ default:
     hwsd_class_tables:
       dir: "Input/HWSD_tables"
       flag_read_access_database: false
+  # Processing stage (`02_Data_processing`). Folders are relative to the
+  #   data root; the processed folders are git-ignored and only this stage
+  #   writes them. Every raw raster is aggregated by `aggregation_factor` in
+  #   both directions with terra's default handling of missing cells (a
+  #   block with any missing cell is missing), as in v1, so the 1728 by 836
+  #   grid and its land and coast cells stay and the VegVault gridpoints do
+  #   not move.
+  data_processing:
+    aggregation_factor: 25
+    climate_products:
+      chelsa_v21:
+        source: "chelsa_v21"
+        store_acquisition: "data_acquisition_chelsa_v21"
+        dir: "Processed/CHELSA_V2.1"
+        aggregation_fun: "median"
+        n_workers: 1
+        # Fill values of raw bio12, bio18 and bio19 in the last three rows
+        #   (89.98 to 90 S), 846 cells (decided by Ondrej Mottl,
+        #   2026-11-21). They are set to missing as if before the
+        #   aggregation; the bottom processed row lies beyond 90 S and is
+        #   always missing, so no processed value changes.
+        fill_mask:
+          variables: {bio12: 6553.5, bio18: 6553.3, bio19: 6553.3}
+          lat_max: -89.975
+      chelsa_trace21k:
+        source: "chelsa_trace21k"
+        store_acquisition: "data_acquisition_chelsa_trace21k"
+        dir: "Processed/CHELSA_TraCE21k_V1.0"
+        aggregation_fun: "median"
+        # One raw file takes about 10 s and 3.6 GB of memory
+        n_workers: 6
+        # Inflated precipitation in South America in nine slices: a cell and
+        #   age has no row for the four precipitation variables when bio12
+        #   is above twice the cell's median over all ages and 100 mm above
+        #   it, inside the region (19,419 cell-ages on the v1 rasters;
+        #   decided by Ondrej Mottl, 2026-11-21, VegVault issue 93)
+        artefact_mask:
+          detector: "bio12"
+          variables: [bio12, bio15, bio18, bio19]
+          ages: [12000, 12500, 15000, 15500, 16000, 16500, 17000, 17500, 18000]
+          region: {lon_min: -80, lon_max: -35, lat_min: -25, lat_max: 5}
+          ratio_min: 2
+          increase_min: 100
+    # HWSD v2.2 soil groups on the processed CHELSA grid: the dominant
+    #   component of each soil unit, mapped by its two-letter WRB code to the
+    #   codes 1 to 32 of the VegVault `hwsd_soil` specification (alphabetical
+    #   by group name); resampled to the raw CHELSA V2.1 grid (nearest cell)
+    #   and aggregated by the mode over all classes; a cell whose dominant
+    #   class is not a soil has no value (decided by Ondrej Mottl,
+    #   2026-11-21)
+    hwsd:
+      store_acquisition: "data_acquisition_hwsd"
+      store_template: "data_acquisition_chelsa_v21"
+      template_source: "chelsa_v21"
+      template_variable: "bio1"
+      dir: "Processed/HWSD_v2.2"
+      soil_group_codes:
+        {AC: 1, AL: 2, AN: 3, AT: 4, AR: 5, CL: 6, CM: 7, CH: 8, CR: 9, DU: 10, FR: 11, FL: 12, GL: 13, GY: 14, HS: 15, KS: 16, LP: 17, LX: 18, LV: 19, NT: 20, PH: 21, PL: 22, PT: 23, PZ: 24, RG: 25, RT: 26, SC: 27, SN: 28, ST: 29, TC: 30, UM: 31, VR: 32}
+      # Glaciers, open water, islands and no data
+      non_soil_codes: {GG: 33, WR: 34, IS: 35, ND: 36}
+      # WRB codes in no list (LK and FK in v2.2) and missing codes
+      code_unlisted: 37
   # Raster quality check (stage `03_Quality_checks`), read by
   #   `build_raster_quality_targets()`. Folders are relative to the data
   #   root. Changing a value reruns only the targets that depend on it.
@@ -143,6 +205,8 @@ default:
       processed_rasters:
         n_workers: 1
         check_sets:
+          - chelsa_v21_processed
+          - chelsa_trace21k_processed
           - chelsa_v21_processed_legacy
           - chelsa_trace21k_processed_legacy
           - chelsa_v21_processed_verification
@@ -233,6 +297,25 @@ default:
         required_pass: true
         grid: raw
         check_server_size: true
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+      # The rasters of the processing stage, which keep the raw file names
+      chelsa_v21_processed:
+        source: "chelsa_v21"
+        dir: "Processed/CHELSA_V2.1"
+        required_pass: true
+        grid: processed
+        check_server_size: false
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+      chelsa_trace21k_processed:
+        source: "chelsa_trace21k"
+        dir: "Processed/CHELSA_TraCE21k_V1.0"
+        required_pass: true
+        grid: processed
+        check_server_size: false
         pairs:
           - {variable: bio18, reference: bio12}
           - {variable: bio19, reference: bio12}
