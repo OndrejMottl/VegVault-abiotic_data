@@ -13,12 +13,13 @@
 #' `list_check_sets` in the same order, where every set with a `source`
 #' holds `product`, `dir`, `file_name_template`, `variables`, `ages` and,
 #' when the source has it, `time_id` of that source in addition to its own
-#' elements, and no longer holds `source`.
+#' elements, and no longer holds `source`. A set that gives its own `dir`
+#' keeps it: processed rasters keep the raw file names in another folder.
 #' @details
 #' Aborts when a set names a source that `list_data_sources` does not
 #' have, when the source has no `file_name_template` (a fixed file list
 #' cannot be checked as rasters), or when the set also defines one of the
-#' file elements itself, which would make two definitions.
+#' other file elements itself, which would make two definitions.
 #' @seealso [build_raster_quality_targets()],
 #'   [build_source_expected_files()]
 #' @examples
@@ -112,12 +113,16 @@ prepare_quality_check_sets <- function(
     )
   }
 
-  # A set that names a source must not define its files a second time
+  # A set that names a source must not define its files a second time; its
+  #   own folder is allowed
   vec_conflicts <-
     purrr::imap_chr(
       .x = list_check_sets,
       .f = ~ stringr::str_c(
-        base::intersect(base::names(.x), vec_file_elements),
+        base::intersect(
+          base::names(.x),
+          base::setdiff(vec_file_elements, "dir")
+        ),
         collapse = ", "
       )
     )
@@ -158,7 +163,7 @@ prepare_quality_check_sets <- function(
           .x[base::setdiff(base::names(.x), "source")],
           purrr::keep_at(
             x = list_data_sources[[.x[["source"]]]],
-            at = vec_file_elements
+            at = base::setdiff(vec_file_elements, base::names(.x))
           )
         )
       }

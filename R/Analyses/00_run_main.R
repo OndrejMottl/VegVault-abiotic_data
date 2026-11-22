@@ -31,6 +31,7 @@ library(here)
 vec_stage_runners <-
   c(
     "R/Analyses/01_Data_acquisition/00_run.R",
+    "R/Analyses/02_Data_processing/00_run.R",
     "R/Analyses/03_Quality_checks/00_run.R"
   )
 
