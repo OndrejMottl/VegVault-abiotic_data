@@ -1,7 +1,7 @@
 # Copy of the VegVault producer contracts, written by
 #   save_contract_copy(). Do not edit the copied files or this record;
 #   make the copy again from a VegVault checkout instead.
-vegvault_commit: e957ea3eb820b0a324007c84a68241ae7d5a72ec
+vegvault_commit: 2cda2ed4efe48104667615bf1b064f16b3d60a5c
 producer_repository: OndrejMottl/VegVault-abiotic_data
 files:
 - path: Data/Contracts/chelsa_neoclimate.yml
@@ -33,13 +33,17 @@ files:
 - path: R/Functions/Contracts/build_producer_file_name.R
   sha256: d376025972865d19f1002711bea412a4307958eda778b30f2f2db96f9d0167d5
 - path: R/Functions/Contracts/build_producer_file_regex.R
-  sha256: 6903069f49fe9eeba64b103eac20d098533b23a30b29f0c6a9f31d0d49f02ca2
+  sha256: 0e99f24c5ad9f857aed91c9876641c3a9199cd0e062a267845c66927da38d6a2
 - path: R/Functions/Contracts/build_producer_file_table.R
   sha256: 2407561c30772574b864af56ee8be50a4393219ed704e389871f7dd05d157099
 - path: R/Functions/Contracts/build_producer_findings.R
   sha256: ef9785251f05387b3eaa28d719fa98042597142d248939640f49fc6acd7f0952
 - path: R/Functions/Contracts/build_splot_plots_fixture.R
   sha256: cb0276d54c4470f59613255c9f14725a70d5d4108aafcbacb7c7a6973d564db3
+- path: R/Functions/Contracts/build_trait_derivations_fixture.R
+  sha256: b874673eab2bc1c9418e3b82a4c3edf7c0867ff6b9e89c54c5f88ddded4d59ac
+- path: R/Functions/Contracts/build_trait_unit_conversions_fixture.R
+  sha256: 48b0365bcd93abf7ec87ef7a214335a1f93a9c61851b644624187b9b56946544
 - path: R/Functions/Contracts/build_try_traits_fixture.R
   sha256: 01af9322103574c7fecb7a785afa091236536cb9409621029ae5106ce12bae8e
 - path: R/Functions/Contracts/compute_text_file_sha256.R
@@ -68,11 +72,13 @@ files:
   sha256: 62a3896ad6131503d44c539960d02cf3bc1cae22f9575e79799ce9e392b8ad62
 - path: R/Functions/Contracts/load_producer_contract.R
   sha256: f085fefd5dd27f9361ea81e417853d77fba49752204c4ec11feddf4a105323e2
+- path: R/Functions/Contracts/load_producer_csv.R
+  sha256: 9d57314d71f3bf7ca1a969c8c837fea9a287b00c34642ba88f0a4486188729b6
 - path: R/Functions/Contracts/save_producer_fixture.R
-  sha256: c50d1816e5d5ea60244eee0f4ece49f25550854fcaa56ea97b30491a10ff1a75
+  sha256: 82df1c51fa175273f3a2593f5b6673605e50b8b3cae55849c790e8d549ce7db0
 - path: R/Functions/Contracts/select_contract_copy_files.R
   sha256: b29fb7b93ab4ccc61b97a4abce4fd9002cfe12f15991d95b3e387a510d1bb719
 - path: R/Functions/Contracts/validate_contract_copy.R
   sha256: 09d0ed60917125c54f90d6cffacf26ea9b09c6a5be83507cbacc44667ee124d4
 - path: R/Functions/Contracts/validate_producer_artefact.R
-  sha256: b2a56986372b2ea946efbf5f4194251c9f32b3d908abc2643e49c7884b522cd9
+  sha256: be7f0cb9f512ba303382a29c0a8a850ee8e1e3b617fe932b8e1142b167610d7a
