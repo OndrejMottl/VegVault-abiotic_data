@@ -1,7 +1,7 @@
 # Copy of the VegVault producer contracts, written by
 #   save_contract_copy(). Do not edit the copied files or this record;
 #   make the copy again from a VegVault checkout instead.
-vegvault_commit: 332fa0d3e62f15b9abd9bf1c97daa6c74d5d3062
+vegvault_commit: e957ea3eb820b0a324007c84a68241ae7d5a72ec
 producer_repository: OndrejMottl/VegVault-abiotic_data
 files:
 - path: Data/Contracts/chelsa_neoclimate.yml
@@ -19,11 +19,11 @@ files:
 - path: R/Functions/Contracts/build_bien_plots_fixture.R
   sha256: 51c8040d4af6a165a16079046a492f73bdb56c73dd3a5827597706152e12d907
 - path: R/Functions/Contracts/build_bien_traits_fixture.R
-  sha256: 274f9ca9a3d938aa48652b2cf34feee19e468caebc03538c57c7b034a55d5a19
+  sha256: 66ec2644f52ce83c41dd3917e1daaaf4d07c1e85b4f9541a164a6ca478eede99
 - path: R/Functions/Contracts/build_chelsa_neoclimate_fixture.R
   sha256: acfc485c6b31a157570a1c4fdb42c2df272d477000e2b1aaf0d42c7b4ea38c72
 - path: R/Functions/Contracts/build_chelsa_trace21k_palaeoclimate_fixture.R
-  sha256: 4211b7e096cce82e3d030964b1ddc4f3dd581ace906b898d8a51103093a1e897
+  sha256: 5ff8c8db93e55819b1200890e46036103080ed8d750b123d9be8156702252fab
 - path: R/Functions/Contracts/build_fossilpol_age_uncertainty_fixture.R
   sha256: 51787bae2ebc30b5218903de00ede1f0af82b0283e4f2ebcbdd3137c1e225f76
 - path: R/Functions/Contracts/build_fossilpol_assembly_fixture.R
@@ -45,7 +45,7 @@ files:
 - path: R/Functions/Contracts/compute_text_file_sha256.R
   sha256: 32b9f404db3b7f808d3d54a62d84c662f8f9389a93ea27b3ffa1c6f0e8695c1d
 - path: R/Functions/Contracts/diagnose_producer_artefact.R
-  sha256: eebc60590f5bf9a84adffd09860badeda8729ea3cecb3ddaeb5e0e0fdd74ae95
+  sha256: af72761a890947c95015e6acdeea1bd08e46c7631db69f65e6dc855fc58dcd86
 - path: R/Functions/Contracts/diagnose_producer_check_specs.R
   sha256: ea5156125c824ca32c6cc7638dc00e3377a74ae5614ae62b3cf842e5ec60eb20
 - path: R/Functions/Contracts/diagnose_producer_column_specs.R
@@ -59,7 +59,7 @@ files:
 - path: R/Functions/Contracts/diagnose_producer_file_names.R
   sha256: d10aa2607d5fced07e899c8900364aa0ad9efe95afba21e29e9aef751f14977f
 - path: R/Functions/Contracts/diagnose_producer_table_rules.R
-  sha256: 01334679bb3e51b7eddf7164ebe3ae280ad1a0999b43ea0c24dc6dd0b9c35097
+  sha256: ce77fc0c376394b977e421844d6b5a49fff001f5ba6197af5e2860bcfa912327
 - path: R/Functions/Contracts/diagnose_producer_values.R
   sha256: 8197fbd709000ccf5fe0ab95324c9dc1743ca99e10410bdafca7a0bbd1acf7db
 - path: R/Functions/Contracts/is_producer_class.R

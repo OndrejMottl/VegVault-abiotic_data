@@ -15,8 +15,6 @@
 #   project setup itself. Add every new stage runner to the list below.
 # The stages process global rasters, so never run this script without
 #   explicit approval (see .ai/repository-contract.md).
-# The legacy scripts in R/01_Data_processing/ and R/02_Main_analyses/ stay
-#   until the stages replace them.
 # Run with:
 #   Rscript R/Analyses/00_run_main.R
 

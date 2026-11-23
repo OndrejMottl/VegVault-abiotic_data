@@ -19,10 +19,9 @@ default:
   # Packages for renv to record. Packages called only as `pkg::fun()` are
   #   detected automatically.
   packages:
-    # Attached by `R/___setup_project___.R`. The legacy scripts call `%>%`
-    #   and `dplyr::case_when()` without a namespace, so tidyverse stays
-    #   attached for them. Do not attach packages that mask base functions
-    #   (e.g. renv, config).
+    # Attached by `R/___setup_project___.R` for scripts and interactive
+    #   work; the functions call every package with its namespace. Do not
+    #   attach packages that mask base functions (e.g. renv, config).
     attach:
       - assertthat
       - cli
@@ -293,7 +292,6 @@ default:
         n_workers: 8
         check_sets:
           - chelsa_v21_raw
-          - chelsa_v21_raw_legacy
           - chelsa_trace21k_raw
     # Thresholds by product, rule and variable. Derived on 2026-11-21 from
     #   the healthy tracked processed rasters (all except CHELSA V2.1 bio4
@@ -354,20 +352,6 @@ default:
         required_pass: true
         grid: raw
         check_server_size: true
-        pairs:
-          - {variable: bio18, reference: bio12}
-          - {variable: bio19, reference: bio12}
-      chelsa_v21_raw_legacy:
-        product: "CHELSA_V2.1"
-        required_pass: false
-        dir: "Input/Neoclimate/bio/ChelsaV2.1Climatologies"
-        file_name_template: "CHELSA_{file_variable}_1981-2010_V2.1.tif"
-        variables:
-          {bio1: bio_01, bio4: bio_04, bio6: bio_06, bio12: bio_12, bio15: bio_15, bio18: bio_18, bio19: bio_19}
-        ages: {from: 0, to: 0, by: 1}
-        grid: raw
-        # The 2023 files differ from what the server holds now
-        check_server_size: false
         pairs:
           - {variable: bio18, reference: bio12}
           - {variable: bio19, reference: bio12}

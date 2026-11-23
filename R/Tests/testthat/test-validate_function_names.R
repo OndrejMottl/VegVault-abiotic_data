@@ -52,13 +52,10 @@ testthat::test_that("validate_function_names() accepts valid files", {
   )
 })
 
-# TODO: check the whole of R/Functions/ again, as the template does, once
-#   the legacy functions are renamed to approved verbs during the template
-#   conversion; until then only the template helpers are checked here
 testthat::test_that("validate_function_names() passes the project folder", {
   res <-
     validate_function_names(
-      function_dir = here::here("R", "Functions", "Workflow")
+      function_dir = here::here("R", "Functions")
     )
 
   testthat::expect_true(base::nrow(res) > 0L)
