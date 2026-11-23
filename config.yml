@@ -193,6 +193,53 @@ default:
       dir: "Processed/HWSD_v2.2/Cell_tables"
       columns: [long, lat, value, var_name]
       var_names: {soil_group: HWSD2}
+  # Export stage (`05_Export`). Saves the cell tables of the extraction
+  #   stage as the artefacts of the VegVault producer contracts (file names,
+  #   folders and the four CHELSA-TraCE21k batches come from the contracts),
+  #   checks that each contract folder holds exactly these files and that
+  #   they pass their contract, and writes the checksum manifest, a summary
+  #   per variable and the legend of the soil-group codes to `dir_tables`.
+  #   It runs only after the quality check of the processed rasters passed.
+  #   File names carry the date of the run and the hash of the saved
+  #   object; an earlier version of an artefact stops the run unless
+  #   `flag_replace_previous` is true (approved by Ondrej Mottl,
+  #   2026-11-23). Folders are relative to the project, not the data root.
+  data_export:
+    store: "data_export"
+    # The project's copy of the VegVault contracts, made with VegVault's
+    #   save_contract_copy(); never edited here
+    dir_contracts: "Data/Contracts"
+    # The contracts name their folders inside `dir_data_contract`; the
+    #   export writes the same folders inside `dir_data`
+    dir_data_contract: "Outputs/Data"
+    dir_data: "Outputs/Data"
+    dir_tables: "Outputs/Tables"
+    flag_replace_previous: false
+    # Names for the legend of soil groups that the HWSD v2.2 lookup D_WRB2
+    #   lacks: it has no row for DU, although 17 soil units have it as their
+    #   dominant soil (code 10). The name is the WRB 2022 name, as in the
+    #   VegVault contract `hwsd_soil` and in HWSD's own D_WRB2CODE. It only
+    #   fills the gap; an HWSD name is never replaced.
+    soil_group_names_missing: {DU: Durisols}
+    # Store and public target of each extraction pipeline, and the contract
+    #   of its artefact
+    products:
+      chelsa_v21:
+        store_extraction: "data_extraction_chelsa_v21"
+        target_extraction: "chelsa_v21_extracted_files"
+        contract: "chelsa_neoclimate"
+      chelsa_trace21k:
+        store_extraction: "data_extraction_chelsa_trace21k"
+        target_extraction: "chelsa_trace21k_extracted_files"
+        contract: "chelsa_trace21k_palaeoclimate"
+      hwsd:
+        store_extraction: "data_extraction_hwsd"
+        target_extraction: "hwsd_extracted_files"
+        contract: "hwsd_soil"
+    # The quality check that must have passed
+    quality_check:
+      store: "quality_checks_processed_rasters"
+      target: "raster_quality_validated"
   # Raster quality check (stage `03_Quality_checks`), read by
   #   `build_raster_quality_targets()`. Folders are relative to the data
   #   root. Changing a value reruns only the targets that depend on it.
@@ -392,3 +439,15 @@ default:
         grid: processed
         check_server_size: false
         pairs: []
+
+# Test runs of the export, for example the comparison with the old scripts:
+#   the artefacts and tables go to the git-ignored `Outputs/Data_temp/`,
+#   never next to the tracked outputs, and the export has its own store.
+#   The other stages are the same as in `default`. Select with
+#   R_CONFIG_ACTIVE=dev.
+dev:
+  profile: "dev"
+  data_export:
+    store: "data_export_dev"
+    dir_data: "Outputs/Data_temp"
+    dir_tables: "Outputs/Data_temp/Tables"
