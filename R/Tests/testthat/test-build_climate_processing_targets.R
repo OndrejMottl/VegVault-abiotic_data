@@ -180,6 +180,8 @@ testthat::test_that("the processing stage aggregates and masks the climate", {
   testthat::expect_true(
     base::all(base::file.exists(dplyr::pull(data_neo, "path_file")))
   )
+  # The branch names of the final rasters are not passed on
+  testthat::expect_null(base::names(dplyr::pull(data_neo, "path_file")))
 
   vec_neo_bio12 <-
     terra::values(

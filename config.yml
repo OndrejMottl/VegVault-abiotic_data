@@ -161,6 +161,38 @@ default:
       non_soil_codes: {GG: 33, WR: 34, IS: 35, ND: 36}
       # WRB codes in no list (LK and FK in v2.2) and missing codes
       code_unlisted: 37
+  # Extraction stage (`04_Data_extraction`). One cell table per processed
+  #   raster, saved as a qs2 file in the git-ignored folder `dir` (relative
+  #   to the data root): one row per cell with a value, in raster cell
+  #   order, with the cell-centre coordinates and the stored value, as in
+  #   v1. `columns` are the columns of the producer contracts of VegVault
+  #   in their order (chelsa_neoclimate, chelsa_trace21k_palaeoclimate and
+  #   hwsd_soil); `var_names` are the labels of the var_name column
+  #   (decided by Ondrej Mottl, 2026-11-22: the v1 labels bio_01 to bio_19,
+  #   and HWSD2 as the contract fixes).
+  data_extraction:
+    climate_products:
+      chelsa_v21:
+        store_processing: "data_processing_chelsa_v21"
+        dir: "Processed/CHELSA_V2.1/Cell_tables"
+        n_workers: 1
+        columns: [long, lat, value, var_name]
+        var_names:
+          {bio1: bio_01, bio4: bio_04, bio6: bio_06, bio12: bio_12, bio15: bio_15, bio18: bio_18, bio19: bio_19}
+      chelsa_trace21k:
+        store_processing: "data_processing_chelsa_trace21k"
+        dir: "Processed/CHELSA_TraCE21k_V1.0/Cell_tables"
+        # One file takes about 2 s and little memory
+        n_workers: 6
+        # time_id comes from the file plan of the download stage, as integer
+        columns: [long, lat, time_id, value]
+    hwsd:
+      store_processing: "data_processing_hwsd"
+      product: "HWSD_v2.2"
+      variable: "soil_group"
+      dir: "Processed/HWSD_v2.2/Cell_tables"
+      columns: [long, lat, value, var_name]
+      var_names: {soil_group: HWSD2}
   # Raster quality check (stage `03_Quality_checks`), read by
   #   `build_raster_quality_targets()`. Folders are relative to the data
   #   root. Changing a value reruns only the targets that depend on it.

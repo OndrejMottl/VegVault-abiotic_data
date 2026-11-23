@@ -424,13 +424,14 @@ build_climate_processing_targets <- function(
         ),
         format = "file"
       ),
-      # Public: the final processed rasters, one row per file
+      # Public: the final processed rasters, one row per file; the branch
+      #   names of the final rasters are not passed on
       targets::tar_target_raw(
         name = vec_name[["processed_files"]],
         command = rlang::expr(
           dplyr::mutate(
             !!list_sym[["processing_files"]],
-            path_file = !!list_sym[["final"]]
+            path_file = base::unname(!!list_sym[["final"]])
           )
         )
       )
