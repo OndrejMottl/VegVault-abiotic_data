@@ -75,6 +75,11 @@ Data/Processed/HWSD_v2.2/
 Outputs/Tables/raster_quality_*_bands.csv
 Outputs/Tables/raster_quality_*_pairs.csv
 
+# Test exports of the `dev` profile (for example the comparison with the
+#   old scripts); only the release export goes to `Outputs/Data/`
+Outputs/Data_temp/*
+!Outputs/Data_temp/.keep
+
 # Private material (correspondence, personal details)
 Private/
 **/Private/

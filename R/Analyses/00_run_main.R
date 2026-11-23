@@ -27,13 +27,14 @@
 
 library(here)
 
-# The template conversion adds the other stages in order
+# The stage runners in order
 vec_stage_runners <-
   c(
     "R/Analyses/01_Data_acquisition/00_run.R",
     "R/Analyses/02_Data_processing/00_run.R",
     "R/Analyses/03_Quality_checks/00_run.R",
-    "R/Analyses/04_Data_extraction/00_run.R"
+    "R/Analyses/04_Data_extraction/00_run.R",
+    "R/Analyses/05_Export/00_run.R"
   )
 
 
