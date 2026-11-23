@@ -157,9 +157,10 @@ build_quality_pipeline_fixture <- function(dir_root) {
   dir_tables <-
     base::file.path(dir_root_normalised, "Tables")
 
-  # Only the template subfolders: the legacy functions directly in
-  #   `R/Functions/` make `{targets}` print code-analysis warnings. The
-  #   quality checks build their file lists with `Data_acquisition` code
+  # Only the subfolders the pipeline needs: the copied contract functions
+  #   in `R/Functions/Contracts/` make `{targets}` print code-analysis
+  #   warnings. The quality checks build their file lists with
+  #   `Data_acquisition` code
   vec_path_functions <-
     base::normalizePath(
       here::here(

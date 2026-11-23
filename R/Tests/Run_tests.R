@@ -32,30 +32,10 @@ source(
 # 1. Validate function files -----
 #----------------------------------------------------------#
 
-# Functions written to the template rules live in subfolders of
-#   R/Functions/. The legacy functions sit directly in R/Functions/ and
-#   are skipped until the template conversion moves them into subfolders
-#   under approved verbs; then this check covers every function again
-vec_dirs_checked <-
-  base::list.dirs(
-    path = here::here("R", "Functions"),
-    full.names = TRUE,
-    recursive = FALSE
-  )
-
-vec_dirs_with_files <-
-  vec_dirs_checked[
-    purrr::map_lgl(
-      .x = vec_dirs_checked,
-      .f = ~ base::length(
-        base::list.files(path = .x, pattern = "[.]R$", recursive = TRUE)
-      ) > 0L
-    )
-  ]
-
-purrr::walk(
-  .x = vec_dirs_with_files,
-  .f = ~ validate_function_names(function_dir = .x)
+# Every function file under R/Functions/, including the copy of the
+#   VegVault contract functions
+validate_function_names(
+  function_dir = here::here("R", "Functions")
 )
 
 

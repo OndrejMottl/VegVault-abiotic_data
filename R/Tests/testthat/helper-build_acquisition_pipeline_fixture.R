@@ -97,8 +97,9 @@ build_acquisition_pipeline_fixture <- function(dir_root) {
     file = path_config
   )
 
-  # Only the template subfolders: the legacy functions directly in
-  #   `R/Functions/` make `{targets}` print code-analysis warnings
+  # Only the subfolders the pipeline needs: the copied contract functions
+  #   in `R/Functions/Contracts/` make `{targets}` print code-analysis
+  #   warnings
   vec_path_functions <-
     base::normalizePath(
       here::here(

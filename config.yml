@@ -19,10 +19,9 @@ default:
   # Packages for renv to record. Packages called only as `pkg::fun()` are
   #   detected automatically.
   packages:
-    # Attached by `R/___setup_project___.R`. The legacy scripts call `%>%`
-    #   and `dplyr::case_when()` without a namespace, so tidyverse stays
-    #   attached for them. Do not attach packages that mask base functions
-    #   (e.g. renv, config).
+    # Attached by `R/___setup_project___.R` for scripts and interactive
+    #   work; the functions call every package with its namespace. Do not
+    #   attach packages that mask base functions (e.g. renv, config).
     attach:
       - assertthat
       - cli
