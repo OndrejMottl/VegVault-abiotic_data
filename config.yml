@@ -285,9 +285,6 @@ default:
         check_sets:
           - chelsa_v21_processed
           - chelsa_trace21k_processed
-          - chelsa_v21_processed_legacy
-          - chelsa_trace21k_processed_legacy
-          - chelsa_v21_processed_verification
       raw_rasters:
         n_workers: 8
         check_sets:
@@ -344,8 +341,8 @@ default:
     #   raw data source (`source`, from `data_sources`) or defines its
     #   files itself; `variables` maps the variable name used in thresholds
     #   and tables to the token in the file name. `required_pass: true`
-    #   stops the run when the set fails; the legacy sets are kept as a
-    #   comparison and only reported.
+    #   stops the run when the set fails; a set with `required_pass: false`
+    #   is only reported.
     check_sets:
       chelsa_v21_raw:
         source: "chelsa_v21"
@@ -382,47 +379,6 @@ default:
         pairs:
           - {variable: bio18, reference: bio12}
           - {variable: bio19, reference: bio12}
-      chelsa_v21_processed_legacy:
-        product: "CHELSA_V2.1"
-        required_pass: false
-        dir: "Processed/Neoclimate"
-        file_name_template: "CHELSA_{file_variable}_1981-2010_V2.1.tif"
-        variables:
-          {bio1: bio_01, bio4: bio_04, bio6: bio_06, bio12: bio_12, bio15: bio_15, bio18: bio_18, bio19: bio_19}
-        ages: {from: 0, to: 0, by: 1}
-        grid: processed
-        check_server_size: false
-        pairs:
-          - {variable: bio18, reference: bio12}
-          - {variable: bio19, reference: bio12}
-      chelsa_trace21k_processed_legacy:
-        product: "CHELSA_TraCE21k_V1.0"
-        required_pass: false
-        dir: "Processed/Paleoclimate"
-        file_name_template: "CHELSA_TraCE21k_{file_variable}_{time_id}_V1.0.tif"
-        variables:
-          {bio1: bio01, bio4: bio04, bio6: bio06, bio12: bio12, bio15: bio15, bio18: bio18, bio19: bio19}
-        ages: {from: 0, to: 18000, by: 500}
-        time_id: {origin_age: 2000, step_years: 100}
-        grid: processed
-        check_server_size: false
-        pairs:
-          - {variable: bio18, reference: bio12}
-          - {variable: bio19, reference: bio12}
-      # The new raw bio4 aggregated with the legacy method
-      #   (`downscale_and_crop_tif_data()`, factor 25, median), which keeps
-      #   the raw file name, to show that the corrected file gives a
-      #   healthy processed raster
-      chelsa_v21_processed_verification:
-        product: "CHELSA_V2.1"
-        required_pass: false
-        dir: "Temp/Verification"
-        file_name_template: "CHELSA_{file_variable}_1981-2010_V.2.1.tif"
-        variables: {bio4: bio4}
-        ages: {from: 0, to: 0, by: 1}
-        grid: processed
-        check_server_size: false
-        pairs: []
 
 # Test runs of the export, for example the comparison with the old scripts:
 #   the artefacts and tables go to the git-ignored `Outputs/Data_temp/`,

@@ -1,8 +1,0 @@
-product,variable,age,file_name,status,n_failures,failing_rules,allowed_rules
-CHELSA_V2.1,bio1,0,CHELSA_bio_01_1981-2010_V2.1.tif,pass,0,,
-CHELSA_V2.1,bio4,0,CHELSA_bio_04_1981-2010_V2.1.tif,fail,158,"zero_share_max, zero_share_step",
-CHELSA_V2.1,bio6,0,CHELSA_bio_06_1981-2010_V2.1.tif,pass,0,,
-CHELSA_V2.1,bio12,0,CHELSA_bio_12_1981-2010_V2.1.tif,pass,0,,type_limit
-CHELSA_V2.1,bio15,0,CHELSA_bio_15_1981-2010_V2.1.tif,pass,0,,
-CHELSA_V2.1,bio18,0,CHELSA_bio_18_1981-2010_V2.1.tif,pass,0,,
-CHELSA_V2.1,bio19,0,CHELSA_bio_19_1981-2010_V2.1.tif,pass,0,,
