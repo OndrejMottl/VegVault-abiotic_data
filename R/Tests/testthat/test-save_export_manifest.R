@@ -161,9 +161,13 @@ testthat::test_that("save_export_manifest() writes one row per file", {
     dplyr::pull(data_manifest, "contract_id"),
     c("hwsd_soil", base::rep("chelsa_neoclimate", 7))
   )
+  # Each row records the version of its artefact's contract
   testthat::expect_equal(
     dplyr::pull(data_manifest, "contract_version"),
-    c("2.0.0", base::rep("1.1.0", 7))
+    c(
+      purrr::chuck(contract_soil, "contract_version"),
+      base::rep(purrr::chuck(contract_neo, "contract_version"), 7)
+    )
   )
   testthat::expect_equal(
     dplyr::pull(data_manifest, "variable"),
