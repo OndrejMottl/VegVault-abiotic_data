@@ -1,21 +1,21 @@
 # Copy of the VegVault producer contracts, written by
 #   save_contract_copy(). Do not edit the copied files or this record;
 #   make the copy again from a VegVault checkout instead.
-vegvault_commit: 2cda2ed4efe48104667615bf1b064f16b3d60a5c
+vegvault_commit: 0aa6c07f07a6c7e221b6f8e8539b05f67e9dbfea
 producer_repository: OndrejMottl/VegVault-abiotic_data
 files:
 - path: Data/Contracts/chelsa_neoclimate.yml
-  sha256: 540d3e898db6e53ef3e0b23f117fab743a75a4a8295c8627427cb156b5a06817
+  sha256: a2e0c86533026a8339d9af58266bcc50fe334f00e501f635a21a4e73a86b0654
   contract_id: chelsa_neoclimate
-  contract_version: 1.1.0
+  contract_version: 1.1.1
 - path: Data/Contracts/chelsa_trace21k_palaeoclimate.yml
-  sha256: 49aee29cf3c25c86bb2c8ccbdca1e0b3152cea83d250d3044ea5c02d59c319de
+  sha256: 505b26a2a0458e4f8996e3035118ac1c1919abb4b62759e5cc9bbb58fb0a25b2
   contract_id: chelsa_trace21k_palaeoclimate
-  contract_version: 2.0.0
+  contract_version: 2.0.1
 - path: Data/Contracts/hwsd_soil.yml
-  sha256: ff49312235a123e60acd81ac6d97f47959a601880b59cecf7d35effffb80199f
+  sha256: 67aa1ab34e744bfde386b51ffeb92b491d063bde628b8cc15a913438c3f470f3
   contract_id: hwsd_soil
-  contract_version: 2.0.0
+  contract_version: 2.0.1
 - path: R/Functions/Contracts/build_bien_plots_fixture.R
   sha256: 51c8040d4af6a165a16079046a492f73bdb56c73dd3a5827597706152e12d907
 - path: R/Functions/Contracts/build_bien_traits_fixture.R
