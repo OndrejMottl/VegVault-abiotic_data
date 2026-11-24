@@ -1,0 +1,3 @@
+# The pipelines write these tables with LF line endings. Keeping LF on
+# checkout means {targets} does not see a changed file after a checkout.
+Outputs/Tables/*.csv text eol=lf

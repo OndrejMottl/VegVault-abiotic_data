@@ -1,0 +1,393 @@
+# Project configuration read through `load_config_value()`.
+# Select a profile with the `R_CONFIG_ACTIVE` environment variable; the
+#   `default` profile is used otherwise. Other profiles inherit from
+#   `default` and only list the values they change.
+# Machine-local paths do not belong here; put them in the git-ignored
+#   `secrets.yaml` (see `secrets_example.yaml`).
+# The template conversion adds the source, processing, quality-check and
+#   export settings stage by stage.
+
+default:
+  # Name of the active profile; `validate_config_profile()` compares it with
+  #   R_CONFIG_ACTIVE
+  profile: "default"
+  seed: 900723
+  # Data root used when `secrets.yaml` has no `Data` entry; relative to the
+  #   project. Raw inputs live in `<data root>/Input/` and target stores in
+  #   `<data root>/Targets_data/`.
+  data_storage_path: "Data"
+  # Packages for renv to record. Packages called only as `pkg::fun()` are
+  #   detected automatically.
+  packages:
+    # Attached by `R/___setup_project___.R` for scripts and interactive
+    #   work; the functions call every package with its namespace. Do not
+    #   attach packages that mask base functions (e.g. renv, config).
+    attach:
+      - assertthat
+      - cli
+      - here
+      - targets
+      - tidyverse
+    # Installed and recorded, but not attached (IDE and workflow tools)
+    tools:
+      - httpgd
+      - languageserver
+      - roxygen2
+      - visNetwork
+  # Raw data sources, defined once: the download stage
+  #   (`01_Data_acquisition`) obtains and checks them, and the raw-raster
+  #   quality checks name them with `source`. Folders are relative to the
+  #   data root. `file_check` is how completeness is checked: `geotiff`
+  #   (size against the server-size record and the TIFF block table) or
+  #   `zip` (the archive must open; the FAO server announces no file size,
+  #   so the size rule cannot apply). Every flag is false by default: with
+  #   `flag_download` false nothing is downloaded and a missing file stops
+  #   the run; `flag_record_checksums` records the SHA-256 of present files
+  #   that have no download record yet. Set a flag for one approved run,
+  #   then set it back.
+  data_sources:
+    chelsa_v21:
+      product: "CHELSA_V2.1"
+      dir: "Input/Neoclimate/CHELSA_V2.1"
+      file_name_template: "CHELSA_{file_variable}_1981-2010_V.2.1.tif"
+      url_template: "https://os.zhdk.cloud.switch.ch/chelsav2/GLOBAL/climatologies/1981-2010/bio/{file_name}"
+      variables:
+        {bio1: bio1, bio4: bio4, bio6: bio6, bio12: bio12, bio15: bio15, bio18: bio18, bio19: bio19}
+      ages: {from: 0, to: 0, by: 1}
+      server_sizes_file: "Input/Server_file_sizes/server_file_sizes_2026-11-20.csv"
+      file_check: "geotiff"
+      flag_download: false
+      flag_record_checksums: false
+    chelsa_trace21k:
+      product: "CHELSA_TraCE21k_V1.0"
+      dir: "Input/Paleoclimate"
+      file_name_template: "CHELSA_TraCE21k_{file_variable}_{time_id}_V1.0.tif"
+      url_template: "https://os.zhdk.cloud.switch.ch/chelsav1/chelsa_trace/bio/{file_name}"
+      variables:
+        {bio1: bio01, bio4: bio04, bio6: bio06, bio12: bio12, bio15: bio15, bio18: bio18, bio19: bio19}
+      ages: {from: 0, to: 18000, by: 500}
+      # time_id = (origin_age - age) / step_years: age 0 is 20
+      time_id: {origin_age: 2000, step_years: 100}
+      server_sizes_file: "Input/Server_file_sizes/server_file_sizes_2026-11-20.csv"
+      file_check: "geotiff"
+      flag_download: false
+      flag_record_checksums: false
+    hwsd:
+      product: "HWSD_v2.2"
+      dir: "Input/HWSD"
+      files:
+        hwsd2.2_db.zip: "https://data.apps.fao.org/catalog/dataset/fedae0d8-677c-47a7-9049-6cba560e6c0a/resource/2a815078-f166-4fd6-af0c-733235c15daf/download/hwsd2.2_db.zip"
+        hwsd2.2_raster.zip: "https://data.apps.fao.org/catalog/dataset/fedae0d8-677c-47a7-9049-6cba560e6c0a/resource/3d3ad0cb-c840-4eea-8ae1-fada78c5eebb/download/hwsd2.2_raster.zip"
+      # Members extracted next to the archives (git-ignored folder)
+      archive_members:
+        hwsd2.2_db.zip: [HWSD2.2.mdb]
+        hwsd2.2_raster.zip: [HWSD2.bil, HWSD2.hdr, HWSD2.prj, HWSD2.stx]
+      file_check: "zip"
+      flag_download: false
+      flag_record_checksums: false
+  # Download stage (`01_Data_acquisition`). Folders are relative to the data
+  #   root. The download records are tracked: one CSV per run and product,
+  #   never overwritten.
+  data_acquisition:
+    dir_records: "Input/Download_records"
+    # Temporary `.part` files of running downloads (git-ignored)
+    dir_download: "Temp/Downloads"
+    # The HWSD soil-unit and soil-group tables, saved once from the Access
+    #   database as tracked CSV files, so later stages need no Access
+    #   driver. The flag needs the Microsoft Access ODBC driver (Windows).
+    hwsd_class_tables:
+      dir: "Input/HWSD_tables"
+      flag_read_access_database: false
+  # Processing stage (`02_Data_processing`). Folders are relative to the
+  #   data root; the processed folders are git-ignored and only this stage
+  #   writes them. Every raw raster is aggregated by `aggregation_factor` in
+  #   both directions with terra's default handling of missing cells (a
+  #   block with any missing cell is missing), as in v1, so the 1728 by 836
+  #   grid and its land and coast cells stay and the VegVault gridpoints do
+  #   not move.
+  data_processing:
+    aggregation_factor: 25
+    climate_products:
+      chelsa_v21:
+        source: "chelsa_v21"
+        store_acquisition: "data_acquisition_chelsa_v21"
+        dir: "Processed/CHELSA_V2.1"
+        aggregation_fun: "median"
+        n_workers: 1
+        # Fill values of raw bio12, bio18 and bio19 in the last three rows
+        #   (89.98 to 90 S), 846 cells (decided by Ondrej Mottl,
+        #   2026-11-21). They are set to missing as if before the
+        #   aggregation; the bottom processed row lies beyond 90 S and is
+        #   always missing, so no processed value changes.
+        fill_mask:
+          variables: {bio12: 6553.5, bio18: 6553.3, bio19: 6553.3}
+          lat_max: -89.975
+      chelsa_trace21k:
+        source: "chelsa_trace21k"
+        store_acquisition: "data_acquisition_chelsa_trace21k"
+        dir: "Processed/CHELSA_TraCE21k_V1.0"
+        aggregation_fun: "median"
+        # One raw file takes about 10 s and 3.6 GB of memory
+        n_workers: 6
+        # Inflated precipitation in South America in nine slices: a cell and
+        #   age has no row for the four precipitation variables when bio12
+        #   is above twice the cell's median over all ages and 100 mm above
+        #   it, inside the region (19,419 cell-ages on the v1 rasters;
+        #   decided by Ondrej Mottl, 2026-11-21, VegVault issue 93)
+        artefact_mask:
+          detector: "bio12"
+          variables: [bio12, bio15, bio18, bio19]
+          ages: [12000, 12500, 15000, 15500, 16000, 16500, 17000, 17500, 18000]
+          region: {lon_min: -80, lon_max: -35, lat_min: -25, lat_max: 5}
+          ratio_min: 2
+          increase_min: 100
+    # HWSD v2.2 soil groups on the processed CHELSA grid: the dominant
+    #   component of each soil unit, mapped by its two-letter WRB code to the
+    #   codes 1 to 32 of the VegVault `hwsd_soil` specification (alphabetical
+    #   by group name); resampled to the raw CHELSA V2.1 grid (nearest cell)
+    #   and aggregated by the mode over all classes; a cell whose dominant
+    #   class is not a soil has no value (decided by Ondrej Mottl,
+    #   2026-11-21)
+    hwsd:
+      store_acquisition: "data_acquisition_hwsd"
+      store_template: "data_acquisition_chelsa_v21"
+      template_source: "chelsa_v21"
+      template_variable: "bio1"
+      dir: "Processed/HWSD_v2.2"
+      soil_group_codes:
+        {AC: 1, AL: 2, AN: 3, AT: 4, AR: 5, CL: 6, CM: 7, CH: 8, CR: 9, DU: 10, FR: 11, FL: 12, GL: 13, GY: 14, HS: 15, KS: 16, LP: 17, LX: 18, LV: 19, NT: 20, PH: 21, PL: 22, PT: 23, PZ: 24, RG: 25, RT: 26, SC: 27, SN: 28, ST: 29, TC: 30, UM: 31, VR: 32}
+      # Glaciers, open water, islands and no data
+      non_soil_codes: {GG: 33, WR: 34, IS: 35, ND: 36}
+      # WRB codes in no list (LK and FK in v2.2) and missing codes
+      code_unlisted: 37
+  # Extraction stage (`04_Data_extraction`). One cell table per processed
+  #   raster, saved as a qs2 file in the git-ignored folder `dir` (relative
+  #   to the data root): one row per cell with a value, in raster cell
+  #   order, with the cell-centre coordinates and the stored value, as in
+  #   v1. `columns` are the columns of the producer contracts of VegVault
+  #   in their order (chelsa_neoclimate, chelsa_trace21k_palaeoclimate and
+  #   hwsd_soil); `var_names` are the labels of the var_name column
+  #   (decided by Ondrej Mottl, 2026-11-22: the v1 labels bio_01 to bio_19,
+  #   and HWSD2 as the contract fixes).
+  data_extraction:
+    climate_products:
+      chelsa_v21:
+        store_processing: "data_processing_chelsa_v21"
+        dir: "Processed/CHELSA_V2.1/Cell_tables"
+        n_workers: 1
+        columns: [long, lat, value, var_name]
+        var_names:
+          {bio1: bio_01, bio4: bio_04, bio6: bio_06, bio12: bio_12, bio15: bio_15, bio18: bio_18, bio19: bio_19}
+      chelsa_trace21k:
+        store_processing: "data_processing_chelsa_trace21k"
+        dir: "Processed/CHELSA_TraCE21k_V1.0/Cell_tables"
+        # One file takes about 2 s and little memory
+        n_workers: 6
+        # time_id comes from the file plan of the download stage, as integer
+        columns: [long, lat, time_id, value]
+    hwsd:
+      store_processing: "data_processing_hwsd"
+      product: "HWSD_v2.2"
+      variable: "soil_group"
+      dir: "Processed/HWSD_v2.2/Cell_tables"
+      columns: [long, lat, value, var_name]
+      var_names: {soil_group: HWSD2}
+  # Export stage (`05_Export`). Saves the cell tables of the extraction
+  #   stage as the artefacts of the VegVault producer contracts (file names,
+  #   folders and the four CHELSA-TraCE21k batches come from the contracts),
+  #   checks that each contract folder holds exactly these files and that
+  #   they pass their contract, and writes the checksum manifest, a summary
+  #   per variable and the legend of the soil-group codes to `dir_tables`.
+  #   It runs only after the quality check of the processed rasters passed.
+  #   File names carry the date of the run and the hash of the saved
+  #   object; an earlier version of an artefact stops the run unless
+  #   `flag_replace_previous` is true (approved by Ondrej Mottl,
+  #   2026-11-23). Folders are relative to the project, not the data root.
+  data_export:
+    store: "data_export"
+    # The project's copy of the VegVault contracts, made with VegVault's
+    #   save_contract_copy(); never edited here
+    dir_contracts: "Data/Contracts"
+    # The contracts name their folders inside `dir_data_contract`; the
+    #   export writes the same folders inside `dir_data`
+    dir_data_contract: "Outputs/Data"
+    dir_data: "Outputs/Data"
+    dir_tables: "Outputs/Tables"
+    flag_replace_previous: false
+    # Names for the legend of soil groups that the HWSD v2.2 lookup D_WRB2
+    #   lacks: it has no row for DU, although 17 soil units have it as their
+    #   dominant soil (code 10). The name is the WRB 2022 name, as in the
+    #   VegVault contract `hwsd_soil` and in HWSD's own D_WRB2CODE. It only
+    #   fills the gap; an HWSD name is never replaced.
+    soil_group_names_missing: {DU: Durisols}
+    # Store and public target of each extraction pipeline, and the contract
+    #   of its artefact
+    products:
+      chelsa_v21:
+        store_extraction: "data_extraction_chelsa_v21"
+        target_extraction: "chelsa_v21_extracted_files"
+        contract: "chelsa_neoclimate"
+      chelsa_trace21k:
+        store_extraction: "data_extraction_chelsa_trace21k"
+        target_extraction: "chelsa_trace21k_extracted_files"
+        contract: "chelsa_trace21k_palaeoclimate"
+      hwsd:
+        store_extraction: "data_extraction_hwsd"
+        target_extraction: "hwsd_extracted_files"
+        contract: "hwsd_soil"
+    # The quality check that must have passed
+    quality_check:
+      store: "quality_checks_processed_rasters"
+      target: "raster_quality_validated"
+  # Raster quality check (stage `03_Quality_checks`), read by
+  #   `build_raster_quality_targets()`. Folders are relative to the data
+  #   root. Changing a value reruns only the targets that depend on it.
+  quality_checks:
+    # Latitude band width in degrees; bands are fixed slices at multiples
+    #   of it, assigned by the latitude of the row centre
+    band_width: 1
+    # Raster rows read at once
+    n_rows_block: 240
+    # Relative tolerance for comparing values (type limits, pairs)
+    value_tolerance: 1.0e-6
+    # Largest accepted difference of an extent edge, in degrees
+    extent_tolerance: 1.0e-6
+    # Storage-type limits: the minimum and maximum of each integer type
+    #   times each scale plus each offset. Offset -273.15 is the Kelvin
+    #   offset of CHELSA V2.1 temperatures.
+    type_limits:
+      scales: [1, 0.1, 0.01]
+      offsets: [0, -273.15]
+      integer_types: [INT1S, INT1U, INT2S, INT2U, INT4S, INT4U]
+    # File sizes announced by the server (HTTP HEAD, 2026-11-20)
+    server_sizes_file: "Input/Server_file_sizes/server_file_sizes_2026-11-20.csv"
+    grids:
+      raw:
+        n_col: 43200
+        n_row: 20880
+        x_min: -180.0001388889
+        x_max: 179.9998596712
+        y_min: -90.0001388889
+        y_max: 83.9998604152
+      processed:
+        n_col: 1728
+        n_row: 836
+        x_min: -180.0001388889
+        x_max: 179.9998596712
+        y_min: -90.1668055549
+        y_max: 83.9998604152
+    # Check sets of each pipeline of the stage, and the number of local
+    #   worker processes (1 = sequential). A raw file needs about 100 s
+    #   and 1.1 GB of memory per worker; the processed rasters are small.
+    pipelines:
+      processed_rasters:
+        n_workers: 1
+        check_sets:
+          - chelsa_v21_processed
+          - chelsa_trace21k_processed
+      raw_rasters:
+        n_workers: 8
+        check_sets:
+          - chelsa_v21_raw
+          - chelsa_trace21k_raw
+    # Thresholds by product, rule and variable. Derived on 2026-11-21 from
+    #   the healthy tracked processed rasters (all except CHELSA V2.1 bio4
+    #   and CHELSA-TraCE21k bio15 at age 0): the largest observed value
+    #   times 1.5 plus 0.05. For CHELSA-TraCE21k the zero-share and step
+    #   values use only bands north of 74 S; the allow-list covers the
+    #   bands south of it. Pair thresholds are 0: no quarter may exceed
+    #   the year, and no quarter may be missing where the year has a value.
+    thresholds:
+      CHELSA_V2.1:
+        zero_share_max:
+          {bio1: 0.05, bio4: 0.05, bio6: 0.05, bio12: 0.05, bio15: 0.05, bio18: 0.131, bio19: 0.140}
+        zero_share_step:
+          {bio1: 0.05, bio4: 0.05, bio6: 0.05, bio12: 0.05, bio15: 0.05, bio18: 0.076, bio19: 0.096}
+        pair_exceeding: {bio18: 0, bio19: 0}
+        pair_missing_only: {bio18: 0, bio19: 0}
+      CHELSA_TraCE21k_V1.0:
+        zero_share_max:
+          {bio1: 0.051, bio4: 0.05, bio6: 0.05, bio12: 0.115, bio15: 0.093, bio18: 0.318, bio19: 0.313}
+        zero_share_step:
+          {bio1: 0.051, bio4: 0.05, bio6: 0.05, bio12: 0.101, bio15: 0.085, bio18: 0.141, bio19: 0.153}
+        zero_share_age_deviation:
+          {bio1: 0.05, bio4: 0.05, bio6: 0.05, bio12: 0.314, bio15: 0.095, bio18: 0.35, bio19: 0.277}
+        pair_exceeding: {bio18: 0, bio19: 0}
+        pair_missing_only: {bio18: 0, bio19: 0}
+    # Accepted exceptions. An entry allows every combination of its
+    #   variables and rules, within its latitude limits when given.
+    allow_list:
+      - product: "CHELSA_V2.1"
+        variables: [bio12]
+        rules: [type_limit]
+        reason: "Storage cap of the source: CHELSA V2.1 stores bio12 as unsigned 16-bit integers with scale 0.1, so annual precipitation above 6553.5 mm is stored as 6553.5 (raw: 773,582 cells in 63 bands, 846 of them polar fill cells at 89.98-90 S, which the processing stage masks); a value of 6553.5 means at least 6553.5 mm; documented, not masked (decided by Ondrej Mottl, 2026-11-21)."
+      - product: "CHELSA_TraCE21k_V1.0"
+        variables: [bio12, bio18, bio19]
+        rules: [zero_share_max, zero_share_step]
+        lat_min: -91
+        lat_max: -74
+        reason: "Antarctic interior: CHELSA-TraCE21k has no downscaled precipitation south of 74 S, so zero shares up to 1 occur in every age (accepted by Ondrej Mottl, 2026-11-21)."
+      - product: "CHELSA_TraCE21k_V1.0"
+        variables: [bio15]
+        rules: [band_all_missing]
+        lat_min: -91
+        lat_max: -80
+        reason: "Precipitation seasonality is undefined without precipitation, so CHELSA-TraCE21k bio15 has no value south of 80 S (accepted by Ondrej Mottl, 2026-11-21)."
+      - product: "CHELSA_TraCE21k_V1.0"
+        variables: [bio18, bio19]
+        rules: [pair_exceeding]
+        reason: "Source inconsistency: in CHELSA-TraCE21k the precipitation of the warmest and the coldest quarter exceeds the annual precipitation in some cells of every age (raw age 0: 1,580,397 bio18 cells, at most 3.9 % of a band); kept as delivered and documented (accepted by Ondrej Mottl, 2026-11-21)."
+    # One entry per set of files checked together. A set either names a
+    #   raw data source (`source`, from `data_sources`) or defines its
+    #   files itself; `variables` maps the variable name used in thresholds
+    #   and tables to the token in the file name. `required_pass: true`
+    #   stops the run when the set fails; a set with `required_pass: false`
+    #   is only reported.
+    check_sets:
+      chelsa_v21_raw:
+        source: "chelsa_v21"
+        required_pass: true
+        grid: raw
+        check_server_size: true
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+      chelsa_trace21k_raw:
+        source: "chelsa_trace21k"
+        required_pass: true
+        grid: raw
+        check_server_size: true
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+      # The rasters of the processing stage, which keep the raw file names
+      chelsa_v21_processed:
+        source: "chelsa_v21"
+        dir: "Processed/CHELSA_V2.1"
+        required_pass: true
+        grid: processed
+        check_server_size: false
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+      chelsa_trace21k_processed:
+        source: "chelsa_trace21k"
+        dir: "Processed/CHELSA_TraCE21k_V1.0"
+        required_pass: true
+        grid: processed
+        check_server_size: false
+        pairs:
+          - {variable: bio18, reference: bio12}
+          - {variable: bio19, reference: bio12}
+
+# Test runs of the export, for example the comparison with the old scripts:
+#   the artefacts and tables go to the git-ignored `Outputs/Data_temp/`,
+#   never next to the tracked outputs, and the export has its own store.
+#   The other stages are the same as in `default`. Select with
+#   R_CONFIG_ACTIVE=dev.
+dev:
+  profile: "dev"
+  data_export:
+    store: "data_export_dev"
+    dir_data: "Outputs/Data_temp"
+    dir_tables: "Outputs/Data_temp/Tables"

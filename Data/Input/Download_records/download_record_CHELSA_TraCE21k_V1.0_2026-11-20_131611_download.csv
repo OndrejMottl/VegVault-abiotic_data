@@ -1,0 +1,2 @@
+product,file_name,url,size_bytes,sha256,downloaded_utc,recorded_utc,method
+CHELSA_TraCE21k_V1.0,CHELSA_TraCE21k_bio15_20_V1.0.tif,https://os.zhdk.cloud.switch.ch/chelsav1/chelsa_trace/bio/CHELSA_TraCE21k_bio15_20_V1.0.tif,1232526033,37eb574bfc08a452d0268a2e9c152d4b58c814b4aff4ef7cde01add40655c143,2026-11-20T13:16:11Z,2026-11-20T13:16:11Z,download
